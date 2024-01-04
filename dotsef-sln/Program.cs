@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 var solutions = new DirectoryInfo(Environment.CurrentDirectory).EnumerateFiles("*.sln").ToArray();
 
@@ -61,6 +63,18 @@ var info2 = new ProcessStartInfo(solutions[choice].FullName)
     UseShellExecute = true
 };
 
-Process.Start(info2);
+try
+{
+    Process.Start(info2);
+}
+catch (Exception e) when (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && e is Win32Exception { NativeErrorCode: 1223 })
+{
+    // Suppress errors
+}
+catch (Exception e)
+{
+    Console.Error.WriteLine($"An error occurred: {e.GetType().Name}");
+    return 1;
+}
 
 return 0;
